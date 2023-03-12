@@ -1,31 +1,23 @@
 import { When, Given } from '@badeball/cypress-cucumber-preprocessor';
 
-const results = 'a[data-testid="blog-search-result"]';
+import { blog_components } from '../../page_objects/blogComponent.js';
+import { getRandomInt } from '../../utils/utils.js';
 
-const subMenu = 'div[data-testid="submenu"]';
-
-const articleCategoryMain = 'div.Post__Category-Item';
-
+const results = blog_components.searchResult;
 const menuItem = 'submenu-item-';
-
-const item = 'a[data-testid="blog-list-item"]';
-
 const getMenuCategorySelector = (pos) => `${menuItem}${pos}`;
+
 const getMenuCategorySelectorXpath = (subMenuName) =>
   `//span[normalize-space()='${subMenuName}']/ancestor::div[contains(@data-testid,'submenu-item')]/a`;
 
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
-}
-
 const clickOnRandomArticle = () => {
   cy.get('div.nord-container')
-    .find(item)
+    .find(blog_components.blockItem)
     .then(($value) => {
       return $value.length;
     })
     .then((length) => {
-      cy.get(item).eq(getRandomInt(length)).click();
+      cy.get(blog_components.blockItem).eq(getRandomInt(length)).click();
     });
 };
 
@@ -54,11 +46,11 @@ Given('I open Nord blog homepage', () => {
 
 When('I should see a search bar', () => {
   cy.wait('@searchInput').its('response.statusCode').should('eq', 200);
-  cy.get('div[data-testid="blog-search-container"]').should('be.visible');
+  cy.get(blog_components.searchBar).should('be.visible');
 });
 
 When('I type {string} in the search bar', (search) => {
-  cy.get('input[data-testid="blog-search-input"]')
+  cy.get(blog_components.searchBarInput)
     .should('have.attr', 'placeholder', 'Search the blog...')
     .click()
     .type(`${search}{enter}`);
@@ -90,8 +82,8 @@ When('I hit {string} sub menu item', (subMenuName) => {
 });
 
 When('I see that all articles in chosen sub menu item has a proper {string} category', (subMenuName) => {
-  cy.get(item)
-    .find('div[data-testid="blog-post-category"]')
+  cy.get(blog_components.blockItem)
+    .find(blog_components.postCategory)
     .each((element) => {
       const text = element.text();
       expect(text.toLowerCase()).to.contain(subMenuName.toLowerCase());
@@ -103,14 +95,14 @@ When('I click on random article on the page', () => {
 });
 
 When('I see that main article category the same all related articles on a page', () => {
-  cy.get(articleCategoryMain).then((element) => {
+  cy.get(blog_components.articleCategoryMain).then((element) => {
     const mainArticleCategory = element.text();
     cy.wrap(mainArticleCategory).as('mainArticleCategory');
   });
 
-  cy.get('div[data-testid="related-articles-block"]').scrollIntoView();
-  cy.get(`div[data-testid="related-articles-block"] ${item}`)
-    .find('div[data-testid="blog-post-category"]')
+  cy.get(blog_components.relatedArticlesBlock).scrollIntoView();
+  cy.get(`${blog_components.relatedArticlesBlock} ${blog_components.blockItem}`)
+    .find(blog_components.postCategory)
     .each((element) => {
       const relatedArticleCategory = element.text();
       cy.get('@mainArticleCategory').then((text) => {
